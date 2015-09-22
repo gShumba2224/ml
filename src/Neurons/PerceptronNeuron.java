@@ -10,7 +10,6 @@ public class PerceptronNeuron extends Neuron{
 		this.setID(ID);
 		this.setBias(bias);
 	}
-	
 
 	@Override
 	protected double thresholdFunction() {

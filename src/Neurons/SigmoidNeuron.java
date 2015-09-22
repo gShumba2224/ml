@@ -4,7 +4,7 @@ import Utils.DoubleDimension;
 
 public class SigmoidNeuron extends Neuron {
 	
-	private final double BASE =  2.7183;
+	public static final double BASE =  2.7183;
 	
 	public SigmoidNeuron() {}
 	public SigmoidNeuron(int ID) {this.setID(ID);}
@@ -15,7 +15,7 @@ public class SigmoidNeuron extends Neuron {
 	
 	@Override
 	public double thresholdFunction() {
-		double exponent = (this.getSumValue() - this.getBias()) * -1;
+		double exponent = (this.getSumValue() - this.getBias())  * -1;
 		return  1.0/ (1.0 + Math.pow(BASE, exponent));
 	}
 
