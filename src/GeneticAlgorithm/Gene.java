@@ -2,8 +2,11 @@ package GeneticAlgorithm;
 
 public class Gene {
 	
+	
 	public final static int BIAS = 0;
 	public final static int WEIGHT = 1;
+	
+	private int ID;
 	private int type;
 	private int neuronID;
 	private int inputNumber;
@@ -39,6 +42,10 @@ public class Gene {
 	public void setType(int type) {
 		this.type = type;
 	}
-	
-
+	public int getID() {
+		return ID;
+	}
+	public void setID(int iD) {
+		ID = iD;
+	}
 }

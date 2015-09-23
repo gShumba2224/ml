@@ -70,7 +70,7 @@ public class NeuralNetwork{
 		}
 	}
 	
-	private void setWeights (Genome genome){
+	public void setWeights (Genome genome){
 		for (Gene gene: genome.getGenes()){
 			Neuron neuron = allNeurons.get(gene.getNeuronID());
 			if (gene.getType() == Gene.WEIGHT){
@@ -79,6 +79,15 @@ public class NeuralNetwork{
 				neuron.setBias(gene.getWeight());
 			}
 		}
+	}
+	
+	public List<Double> getOutputs (){
+		
+		 List<Double>  output = new  ArrayList<Double> ();
+		for ( Neuron neuron :outputLayer.getNeurons()){
+			output.add(neuron.getOutputValue());
+		}
+		return output;
 	}
 	
 	private void mapNeuronToID (Neuron neuron) throws DuplicateNeuronID_Exception{

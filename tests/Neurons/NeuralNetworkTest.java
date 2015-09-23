@@ -54,10 +54,6 @@ public class NeuralNetworkTest {
 			for (int j = 0; hidden.get(i).getNeurons().size() > j ; j++){
 				Neuron neuron = hidden.get(i).getNeurons().get(j);
 				assertEquals(count, neuron.getID());
-				System.out.println("sssssssssssssssssssssss "+ neuron.getID());
-				for (Neurons.InputConnection connection : neuron.getInputConnections()){
-					System.out.println(  connection.getWeight() );
-				}
 				count++;
 			}
 		}
@@ -68,7 +64,7 @@ public class NeuralNetworkTest {
 			for (int j = 0; j < out.getNeurons().get(i-40).getInputConnections().size();j++){
 				Neuron neuron = out.getNeurons().get(i-40);
 				double neuronWeight = neuron.getInputConnections().get(j).getWeight();
-				assertEquals(expectedWeight, neuronWeight,2.0);
+				assertEquals(expectedWeight, neuronWeight,1.0);
 				expectedWeight ++;
 			}
 		}
