@@ -12,8 +12,9 @@ public class Gene {
 	private int inputNumber;
 	private double weight;
 	
-	public Gene (int ID, int inputIndex, double weight, int type){
-		neuronID = ID;
+	public Gene (int ID, int neuronID , int inputIndex, double weight, int type){
+		this.ID = ID;
+		this.neuronID = neuronID;
 		this.inputNumber = inputIndex;
 		this.weight = weight;
 		this.type = type;

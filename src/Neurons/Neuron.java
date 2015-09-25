@@ -6,7 +6,7 @@ import java.util.List;
 
 import Utils.DoubleDimension;
 
-abstract class Neuron implements Serializable {
+public abstract class Neuron implements Serializable {
 	
 	private int ID;
 	private List <InputConnection> inputConnections = new ArrayList <InputConnection>();
@@ -60,25 +60,5 @@ abstract class Neuron implements Serializable {
 	public double getBias() {return bias;}
 	
 	public void setBias(double bias) {this.bias = bias;}
-	
-}
-class Connection{
-	private Neuron neuron;
-	public Connection (Neuron neuron){
-		this.setNeuron(neuron);
-	}
-	public Neuron getNeuron() {return neuron;}
-	public void setNeuron(Neuron neuron) {this.neuron = neuron;}
-
-}
-class InputConnection extends Connection{
-	
-	private double weight;
-	public InputConnection (Neuron neuron, double weight){
-		super (neuron);
-		this.setWeight(weight);
-	}
-	public void setWeight (double weight){this.weight  = weight;}
-	public double getWeight (){return weight;}
 	
 }
