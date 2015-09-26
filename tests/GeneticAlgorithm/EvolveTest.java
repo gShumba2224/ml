@@ -176,10 +176,10 @@ public class EvolveTest {
 		Genome child = unit.singlePointCrossOver(father, mother, 1, crossPoint);
 		
 		for (int i = 0; i < crossPoint;i++){
-			assertTrue(child.getGenes().get(i).equals(father.getGenes().get(i)));
+			assertTrue(child.getGenes().get(i).getWeight() == (father.getGenes().get(i).getWeight()));
 		}
 		for (int i = crossPoint; i < mother.getGenes().size();i++){
-			assertTrue(child.getGenes().get(i).equals(mother.getGenes().get(i)));
+			assertTrue(child.getGenes().get(i).getWeight() ==  mother.getGenes().get(i).getWeight());
 		}
 	}
 	
@@ -197,9 +197,9 @@ public class EvolveTest {
 		
 		for (int i = 0; i < child.getGenes().size() ; i++){
 			Gene gene = child.getGenes().get(i);
-			if (gene.equals(mother.getGenes().get(i))){
+			if (gene.getWeight() == mother.getGenes().get(i).getWeight()){
 				momGenes ++;
-			}else if (gene.equals(father.getGenes().get(i))) {
+			}else if (gene.getWeight() == father.getGenes().get(i).getWeight()) {
 				dadGenes ++;
 			}
 		}

@@ -29,13 +29,14 @@ public class NeuralNetwork{
 		}
 		for (Neuron neuron : outputLayer.getNeurons()){mapNeuronToID(neuron);}
 		connectAllLayers (null,null,null);
+		updateAllNeuronsMap();
 	}
 	
 	public NeuralNetwork (int inputLayerSize, int outputLayerSize, int numberOfhidden, int hiddenLayerSizes) throws DuplicateNeuronID_Exception{
 		int count = 0;
 		inputLayer = new NeuralLayer (0);
 		for (int i = 0 ;  i < inputLayerSize ; i++){
-			PerceptronNeuron neuron = new PerceptronNeuron(count);
+			SigmoidNeuron neuron = new SigmoidNeuron(count);
 			inputLayer.getNeurons().add(neuron);
 			mapNeuronToID(neuron);
 			count++;
@@ -44,7 +45,7 @@ public class NeuralNetwork{
 		for (int i = 0 ;  i < numberOfhidden ; i++){
 			NeuralLayer layer = new NeuralLayer (1+i);
 			for (int j = 0 ; j < hiddenLayerSizes ; j++){
-				PerceptronNeuron neuron = new PerceptronNeuron(count);
+				SigmoidNeuron neuron = new SigmoidNeuron(count);
 				layer.getNeurons().add(neuron);
 				mapNeuronToID(neuron);
 				count ++;
@@ -53,12 +54,13 @@ public class NeuralNetwork{
 		}
 		outputLayer = new NeuralLayer (numberOfhidden);
 		for (int i = 0 ;  i < inputLayerSize ; i++){
-			PerceptronNeuron neuron = new PerceptronNeuron(count);
+			SigmoidNeuron neuron = new SigmoidNeuron(count);
 			outputLayer.getNeurons().add(neuron);
 			mapNeuronToID(neuron);
 			count ++;
 		}
 		connectAllLayers (null,null,null);
+		update();
 	}
 	
 	
@@ -91,23 +93,28 @@ public class NeuralNetwork{
 	}
 	
 	public void update () throws DuplicateNeuronID_Exception {
-		for (Neuron neuron : inputLayer.getNeurons()){
-			mapNeuronToID(neuron);
-			neuron.update();
-		}
-		for (NeuralLayer layer : hiddenLayers){
-			for (Neuron neuron : layer.getNeurons()){
-				mapNeuronToID(neuron);
-				neuron.update();
-			}
-		}
-		for (Neuron neuron : outputLayer.getNeurons()){
-			mapNeuronToID(neuron);
+		updateAllNeuronsMap ();
+		for (Neuron neuron : allNeurons.values()){
 			neuron.update();
 		}
 	}
 	
-	public void setWeights (Genome genome){
+	private void updateAllNeuronsMap () throws DuplicateNeuronID_Exception{
+		allNeurons.clear();
+		for (Neuron neuron : inputLayer.getNeurons()){
+			mapNeuronToID(neuron);
+		}
+		for (NeuralLayer layer : hiddenLayers){
+			for (Neuron neuron : layer.getNeurons()){
+				mapNeuronToID(neuron);
+			}
+		}
+		for (Neuron neuron : outputLayer.getNeurons()){
+			mapNeuronToID(neuron);
+		}
+	}
+	public void setWeights (Genome genome) throws DuplicateNeuronID_Exception{
+		updateAllNeuronsMap();
 		for (Gene gene: genome.getGenes()){
 			Neuron neuron = allNeurons.get(gene.getNeuronID());
 			if (gene.getType() == Gene.WEIGHT){

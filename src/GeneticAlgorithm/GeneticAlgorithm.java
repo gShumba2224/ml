@@ -29,14 +29,14 @@ abstract class GeneticAlgorithm {
 	private List <Genome> eliteParents = new ArrayList <Genome> ();
 	private Map <String,Double> fitnessAverages = new HashMap <String,Double>();
 	private double overallFitnessAverage = 0.0;
-	private double mutationRate = 0.0;
-	private double mutationScale = 0.0;
+	private double mutationRate = 0.05;
+	private double mutationScale = 1.0;
 	private int generation = -1;
 	private double maxGeneVal = 1.0;
 	private double minGeneVal = 0.0;
 	
-	abstract void evaluateGenome ();
-	abstract void evaluateGeneration (File logFile);
+	public abstract void evaluateGenome (Object...parameters);
+	public abstract void evaluateGeneration (File logFile);
 	
 	public void newRandomPopulation (NeuralNetwork network, int populationSize, String...fitnessProperties){
 		for (int i = 0; i < populationSize ; i++){
@@ -70,6 +70,7 @@ abstract class GeneticAlgorithm {
 			weight = (weight *(maxGeneVal - minGeneVal))+ minGeneVal;
 			gene = new  Gene(count, neuron.getID(), count, weight, Gene.WEIGHT);
 			genome.getGenes().add(gene);
+			count++;
 		}
 		count++;
 		weight = rand.nextDouble();
@@ -212,14 +213,15 @@ abstract class GeneticAlgorithm {
 	
 	public Genome singlePointCrossOver (Genome father, Genome mother,int childID, int crossPoint){
 		Genome child = new Genome (childID);
+		Gene gene = null;
 		for (int i = 0 ; i < crossPoint ; i++){
 			Gene dadGene = father.getGenes().get(i);
-			Gene gene = new Gene(i, dadGene.getNeuronID(), dadGene.getInputNumber(), dadGene.getWeight(), dadGene.getType());
+			gene = new Gene(i, dadGene.getNeuronID(), dadGene.getInputNumber(), dadGene.getWeight(), dadGene.getType());
 			child.getGenes().add(gene);
 		}
 		for (int i = crossPoint; i < mother.getGenes().size(); i++){
 			Gene momGene = mother.getGenes().get(i);
-			Gene gene = new Gene(i, momGene.getNeuronID(), momGene.getInputNumber(), momGene.getWeight(), momGene.getType());
+			 gene = new Gene(i, momGene.getNeuronID(), momGene.getInputNumber(), momGene.getWeight(), momGene.getType());
 			child.getGenes().add(gene);
 		}
 		return child;
@@ -255,7 +257,8 @@ abstract class GeneticAlgorithm {
 		for (Gene gene : child.getGenes()){
 			willMutate = rand.nextDouble();
 			if (willMutate <= mutationRate){
-				mutateAmount = ( rand.nextDouble() * (max-min) ) - max;
+				mutateAmount = ( rand.nextDouble());
+				mutateAmount = min + mutateAmount * (max - min);
 				double newWeight = gene.getWeight() + mutateAmount;
 				if (newWeight < minGeneVal){newWeight = minGeneVal;}
 				if (newWeight > maxGeneVal){newWeight = maxGeneVal;}
@@ -277,6 +280,7 @@ abstract class GeneticAlgorithm {
 		mutate (child);
 		return child;
 	}
+	
 	
 	//-----------------------GETTERS & SETTERS --------------
 

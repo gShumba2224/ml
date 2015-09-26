@@ -1,6 +1,5 @@
 package Neurons;
 
-import Utils.DoubleDimension;
 
 public class PerceptronNeuron extends Neuron{
 
