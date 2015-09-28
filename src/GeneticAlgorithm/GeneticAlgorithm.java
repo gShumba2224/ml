@@ -20,7 +20,7 @@ import Neurons.NeuralNetwork;
 import Neurons.Neuron;
 import Utils.Round;
 
-abstract class GeneticAlgorithm {
+public abstract class GeneticAlgorithm {
 	
 	
 	private static final double WHEEL = 360.0;
@@ -34,20 +34,17 @@ abstract class GeneticAlgorithm {
 	private int generation = -1;
 	private double maxGeneVal = 1.0;
 	private double minGeneVal = 0.0;
+	private File logFile = null;
 	
 	public abstract void evaluateGenome (Object...parameters);
 	public abstract void evaluateGeneration (File logFile);
+	public abstract void calculateFitnesses ();
+
 	
 	public void newRandomPopulation (NeuralNetwork network, int populationSize, String...fitnessProperties){
 		for (int i = 0; i < populationSize ; i++){
-			Genome genome = new Genome (i);
-			genome.setOverallFitness(0.0);
+			Genome genome = new Genome (i,fitnessProperties);
 			genome.setBoltzmannFitness(0.0);
-			for (String property : fitnessProperties){
-				genome.getFitnessProperties().put(property, 0.0);
-				fitnessAverages.put(property, 0.0);
-			}
-			
 			for (Neuron neuron : network.getInputLayer().getNeurons()){generateRandomGenes(neuron, genome);}
 			for (NeuralLayer layer : network.getHiddenLayers()){
 				for (Neuron neuron : layer.getNeurons()){
@@ -57,7 +54,8 @@ abstract class GeneticAlgorithm {
 			for (Neuron neuron : network.getOutputLayer().getNeurons()){generateRandomGenes(neuron, genome);}
 			population.add(genome);
 		}
-		
+		for (String property : fitnessProperties){fitnessAverages.put(property, 0.0);}
+		generation++;
 	}
 	
 	private void generateRandomGenes (Neuron neuron, Genome genome){
@@ -137,42 +135,31 @@ abstract class GeneticAlgorithm {
 	}
 	
 	public void boltzmannSelection (double temperature, int numberOfSelections){
-		double average = boltzmannAverage(temperature);
 		double sumFitness = 0.0;
+		calculateFitnesses();
 		Map <String, Genome> selectionPool = new HashMap <String, Genome> ();
 		
 		for (Genome genome : population){
-			genome.setBoltzmannFitness( boltzmannFitness(genome.getOverallFitness(), temperature, average));
+			genome.setBoltzmannFitness( boltzmannFitness(genome.getOverallFitness(), temperature, population.size()));
 			sumFitness = sumFitness + genome.getBoltzmannFitness();
 		}
 		double lastPoint = 0.0;
 		for (Genome genome : population){
 			double fitness = genome.getBoltzmannFitness();
-			double startRange = lastPoint;
-			double finishRange = startRange  + ((fitness/sumFitness) * WHEEL);
-			String key = String.valueOf(Round.round(startRange,3))+"-"
-						+String.valueOf(Round.round(finishRange,3));
-			selectionPool.put(key, genome);
-			lastPoint = finishRange;
+			if (fitness > 0 && sumFitness > 0){
+				double startRange = lastPoint;
+				double finishRange = startRange  + ((fitness/sumFitness) * WHEEL);
+				String key = String.valueOf(Round.round(startRange,3))+"-"
+							+String.valueOf(Round.round(finishRange,3));
+				selectionPool.put(key, genome);
+				lastPoint = finishRange;
+			}
 		}
 		stochasticUniversallSampling (selectionPool,numberOfSelections);
 	}
 	
-	private double  boltzmannFitness (Double fitness , double temperature, double currentAverage){
-		return (Math.pow(Math.E,  (fitness/temperature)))/currentAverage;
-	}
-	
-	private double  boltzmannFitness (Double fitness , double temperature){
-		return Math.pow(Math.E,  (fitness/temperature));
-	}
-	
-	private double boltzmannAverage (double temperature){
-		double average = 0;
-		for (Genome genome : population){
-			average = average + boltzmannFitness(genome.getOverallFitness(), temperature);
-		}
-		average = average/population.size();
-		return average;
+	private double  boltzmannFitness (double fitness , double temperature, double currentAverage){
+		return  Round.round((Math.pow(Math.E,  (fitness/temperature)))/currentAverage, 3 );
 	}
 	
 	private  void stochasticUniversallSampling (Map <String,Genome> selectionPool,int numberOfSelections){
@@ -205,14 +192,13 @@ abstract class GeneticAlgorithm {
 				 if (point >= start && point < finish){
 					 return key;
 				}
-			} catch (ParseException e) {
-			}
+			} catch (ParseException e) {}
 		}
 		return null;
 	}
 	
-	public Genome singlePointCrossOver (Genome father, Genome mother,int childID, int crossPoint){
-		Genome child = new Genome (childID);
+	public Genome singlePointCrossOver (Genome father, Genome mother,int childID, int crossPoint,String...fitnesses){
+		Genome child = new Genome (childID,fitnesses);
 		Gene gene = null;
 		for (int i = 0 ; i < crossPoint ; i++){
 			Gene dadGene = father.getGenes().get(i);
@@ -227,8 +213,8 @@ abstract class GeneticAlgorithm {
 		return child;
 	}
 	
-	public Genome uniformCrossOver(Genome father, Genome mother, int childID){
-		Genome child = new Genome (childID);
+	public Genome uniformCrossOver(Genome father, Genome mother, int childID, String...fitnesses){
+		Genome child = new Genome (childID, fitnesses);
 		Random rand = new Random ();
 		Gene gene;
 		int randNum = 0;
@@ -275,6 +261,7 @@ abstract class GeneticAlgorithm {
 		}else{
 			child = singlePointCrossOver (father,mother,childID,crossPoint);
 		}
+		for (String property : fitnessAverages.keySet()){child.getFitnessProperties().put(property, 0.0);}
 		child.setMother(mother);
 		child.setFather(father);
 		mutate (child);

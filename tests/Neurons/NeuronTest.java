@@ -17,12 +17,18 @@ public class NeuronTest {
 	@Test
 	public void addInputConnectionTest() {
 		
-		int count = 0;
 		for (int i = 0; i < 10 ; i++){
 			SigmoidNeuron neuron = new SigmoidNeuron (i);
 			unit.addInputConnection(neuron,(double) i);
 		}
+		int count = 0;
+		for (InputConnection connection : unit.getInputConnections()){
+			assertEquals(connection.getNeuron().getID(), count);
+			assertEquals(connection.getWeight(), (double) count, 0.001);
+			count++;
+		}
 		assertEquals(10, unit.getInputConnections().size());
+		
 	}
 	
 	@Test
@@ -38,12 +44,12 @@ public class NeuronTest {
 		}
 		double bias = 34.0;
 		double exp = -1 * (count - bias);
-		double result = 1.0/ (1.0+ (Math.pow( SigmoidNeuron.BASE, exp)));
+		double result = 1.0/ (1.0+ (Math.pow( Math.E, exp)));
 		
 		unit.setBias(bias);
 		unit.update();
-		assertEquals(result, unit.getOutputValue(),5.0);
-		assertEquals(count, unit.getSumValue(),5.0);
+		assertEquals(result, unit.getOutputValue(),0.001);
+		assertEquals(count, unit.getSumValue(),0.001);
 	}
 
 }

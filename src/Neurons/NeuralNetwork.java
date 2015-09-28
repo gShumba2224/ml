@@ -28,67 +28,57 @@ public class NeuralNetwork{
 			for (Neuron neuron : layer.getNeurons()){mapNeuronToID(neuron);}
 		}
 		for (Neuron neuron : outputLayer.getNeurons()){mapNeuronToID(neuron);}
-		connectAllLayers (null,null,null);
-		updateAllNeuronsMap();
-	}
-	
-	public NeuralNetwork (int inputLayerSize, int outputLayerSize, int numberOfhidden, int hiddenLayerSizes) throws DuplicateNeuronID_Exception{
-		int count = 0;
-		inputLayer = new NeuralLayer (0);
-		for (int i = 0 ;  i < inputLayerSize ; i++){
-			SigmoidNeuron neuron = new SigmoidNeuron(count);
-			inputLayer.getNeurons().add(neuron);
-			mapNeuronToID(neuron);
-			count++;
-		}
-		hiddenLayers = new ArrayList<NeuralLayer> ();
-		for (int i = 0 ;  i < numberOfhidden ; i++){
-			NeuralLayer layer = new NeuralLayer (1+i);
-			for (int j = 0 ; j < hiddenLayerSizes ; j++){
-				SigmoidNeuron neuron = new SigmoidNeuron(count);
-				layer.getNeurons().add(neuron);
-				mapNeuronToID(neuron);
-				count ++;
-			}
-			hiddenLayers.add(layer);
-		}
-		outputLayer = new NeuralLayer (numberOfhidden);
-		for (int i = 0 ;  i < inputLayerSize ; i++){
-			SigmoidNeuron neuron = new SigmoidNeuron(count);
-			outputLayer.getNeurons().add(neuron);
-			mapNeuronToID(neuron);
-			count ++;
-		}
-		connectAllLayers (null,null,null);
+		connectAllLayers (null);
 		update();
 	}
 	
-	
-	public void connectAllLayers (double[] inputWeights, double[] ouputWeights, double[] hiddenWeights){
-		connectLayers(inputLayer, hiddenLayers.get(0) , inputWeights);
-		connectLayers( hiddenLayers.get(hiddenLayers.size()-1),outputLayer , ouputWeights);
-		int toIndex = 0;
-		int fromIndex = 0;
-		double[] weights = null;
-		for (int i = 0; i < hiddenLayers.size()-1; i++){
-			toIndex = hiddenLayers.get(i).getNeurons().size() + fromIndex;
-			if (hiddenWeights != null){weights = Arrays.copyOfRange(hiddenWeights, fromIndex, toIndex);}
-			connectLayers(hiddenLayers.get(i), hiddenLayers.get(i+1), weights);
-			fromIndex = toIndex;
-		}
+	public NeuralNetwork (int inputLayerSize, int outputLayerSize, int numberOfhidden, int hiddenLayerSizes) {
+		try{
+			int count = 0;
+			inputLayer = new NeuralLayer (0);
+			for (int i = 0 ;  i < inputLayerSize ; i++){
+				SigmoidNeuron neuron = new SigmoidNeuron(count);
+				inputLayer.getNeurons().add(neuron);
+				mapNeuronToID(neuron);
+				count++;
+			}
+			hiddenLayers = new ArrayList<NeuralLayer> ();
+			for (int i = 0 ;  i < numberOfhidden ; i++){
+				NeuralLayer layer = new NeuralLayer (1+i);
+				for (int j = 0 ; j < hiddenLayerSizes ; j++){
+					SigmoidNeuron neuron = new SigmoidNeuron(count);
+					layer.getNeurons().add(neuron);
+					mapNeuronToID(neuron);
+					count ++;
+				}
+				hiddenLayers.add(layer);
+			}
+			outputLayer = new NeuralLayer (numberOfhidden);
+			for (int i = 0 ;  i < inputLayerSize ; i++){
+				SigmoidNeuron neuron = new SigmoidNeuron(count);
+				outputLayer.getNeurons().add(neuron);
+				mapNeuronToID(neuron);
+				count ++;
+			}
+			connectAllLayers (null);
+			updateAllNeuronsMap();
+		}catch (DuplicateNeuronID_Exception e){ e.printStackTrace();}
 	}
 	
-	public void connectLayers (NeuralLayer connectFrom, NeuralLayer connectTo, double[] weights){
-		int weightIndex = 0;
+	public void connectAllLayers (Genome genome) throws DuplicateNeuronID_Exception{
+		connectLayers(inputLayer, hiddenLayers.get(0) );
+		connectLayers( hiddenLayers.get(hiddenLayers.size()-1),outputLayer );
+		for (int i = 0; i < hiddenLayers.size()-1; i++){
+			connectLayers(hiddenLayers.get(i), hiddenLayers.get(i+1));
+		}
+		if (genome != null){setWeights(genome);}
+	}
+	
+	public void connectLayers (NeuralLayer connectFrom, NeuralLayer connectTo ){
 		for (Neuron layer1Neuron : connectFrom.getNeurons()){
 			for (Neuron layer2Neuron : connectTo.getNeurons()){
-				if (weights != null){
-					layer2Neuron.addInputConnection(layer1Neuron,weights[weightIndex]);
-				} else{
-					layer2Neuron.addInputConnection(layer1Neuron,0.0);
-				}
+				layer2Neuron.addInputConnection(layer1Neuron,0.0);
 			}
-			weightIndex ++;
 		}
 	}
 	
@@ -155,8 +145,4 @@ public class NeuralNetwork{
 	public void setHiddenLayers(List<NeuralLayer> hiddenLayers) {this.hiddenLayers = hiddenLayers;}
 	
 	public Map<Integer, Neuron> getAllNeurons() {return allNeurons;}
-	
-	
-	
-	
 }

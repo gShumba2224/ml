@@ -10,9 +10,8 @@ public class Genome {
 	private int ID = 0;
 	private Map<String,Double> fitnessProperties = new HashMap <String, Double> ();
 	private List <Gene> genes = new ArrayList <Gene>();
-	private double overallFitness = 0.0;
+	private double overallFitness = 1.0;
 	private double  boltzmannFitness = 0.0;
-	private double  boltzmannFitnessWheel = 0.0;
 	private Genome mother = null;
 	private Genome father = null;
 	
@@ -20,11 +19,10 @@ public class Genome {
 	public Genome (int ID){
 		this.ID = ID;
 	}
-	
-	public void calculateOverallFitness (){
-		overallFitness = 0.0;
-		for (Double score : fitnessProperties.values()){
-			overallFitness = overallFitness + score;
+	public Genome (int ID, String...finesses){
+		this.ID = ID;
+		for (String property : finesses ){
+			this.fitnessProperties.put(property, 0.0);
 		}
 	}
 	public double getOverallFitness() {
@@ -58,12 +56,7 @@ public class Genome {
 	public void setBoltzmannFitness(double boltzmannFitness) {
 		this.boltzmannFitness = boltzmannFitness;
 	}
-	public double getBoltzmannFitnessWheel() {
-		return boltzmannFitnessWheel;
-	}
-	public void setBoltzmannFitnessWheel(double boltzmannFitnessWheel) {
-		this.boltzmannFitnessWheel = boltzmannFitnessWheel;
-	}
+
 	public Genome getMother() {
 		return mother;
 	}
@@ -76,6 +69,4 @@ public class Genome {
 	public void setFather(Genome father) {
 		this.father = father;
 	}
-	
-	
 }

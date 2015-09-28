@@ -2,9 +2,16 @@ package GeneticAlgorithm;
 
 import java.io.File;
 
+import Neurons.NeuralNetwork;
+import Utils.Round;
+
 public class Evolve  extends GeneticAlgorithm{
 
 	public Evolve (){
+	}
+	
+	public Evolve (NeuralNetwork network, int populationSize, String...fitnessProperties){
+		this.newRandomPopulation (network, populationSize, fitnessProperties);
 	}
 	@Override
 	public void evaluateGenome(Object...parameters) {
@@ -32,4 +39,22 @@ public class Evolve  extends GeneticAlgorithm{
 		this.setOverallFitnessAverage(averageFitness/this.getPopulation().size());
 	}
 
+	@Override
+	public void calculateFitnesses() {
+		double sumFitness = 0.0;
+		double averageFitness = 0.0;
+		for (Genome genome : this.getPopulation()){
+			double fitness = 0.0;
+			for (double score : genome.getFitnessProperties().values()){fitness = fitness + score;}
+			sumFitness = sumFitness + fitness;
+			genome.setOverallFitness(fitness);
+		}
+		averageFitness = Round.round(sumFitness/this.getPopulation().size(),3);
+		for (Genome genome : this.getPopulation()){
+			double overallFitness;
+			if (genome.getOverallFitness() == 0){ overallFitness =0.0;}
+			else {overallFitness = Round.round( genome.getOverallFitness()/averageFitness, 3);}
+			genome.setOverallFitness(overallFitness);
+		}
+	}
 }

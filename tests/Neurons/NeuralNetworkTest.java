@@ -12,22 +12,8 @@ import GeneticAlgorithm.Genome;
 
 public class NeuralNetworkTest {
 	
-	public NeuralNetwork unit = new NeuralNetwork ();
-//	public NeuralLayer in = new NeuralLayer();
-//	public NeuralLayer out = new NeuralLayer ();
-//	public ArrayList <NeuralLayer> hidden = new ArrayList <NeuralLayer> ();
-//	double[] weights = new double[20];
-	
+	public NeuralNetwork unit = unit = new NeuralNetwork(3, 3, 3, 3);
 
-	@Before
-	public void initNetwork (){
-		try {
-			unit = new NeuralNetwork(3, 3, 3, 3);
-		} catch (DuplicateNeuronID_Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 	@Test
 	public void getOutputsTest (){
 	
@@ -67,7 +53,6 @@ public class NeuralNetworkTest {
 		try {
 			unit.setWeights(genome);
 		} catch (DuplicateNeuronID_Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		for (Gene gene : genome.getGenes()){
@@ -80,6 +65,49 @@ public class NeuralNetworkTest {
 				neuron.getBias(),0.1);
 			}
 		}
+	}
+	
+	@Test
+	public void connectAllLayersTest (){
+			unit = new NeuralNetwork(5, 5, 5, 5);
+			for (Neuron neuron : unit.getHiddenLayers().get(0).getNeurons()){
+				int count = 0;
+				for (InputConnection connection : neuron.getInputConnections()){
+					assertEquals(connection.getNeuron().getID(), count);
+					count++;
+				}
+			}
+			
+			for (Neuron neuron : unit.getOutputLayer().getNeurons()){
+				int count = 5*5;
+				for (InputConnection connection : neuron.getInputConnections()){
+					assertEquals(connection.getNeuron().getID(), count);
+					count++;
+				}
+			}
+			
+			for (int i = 1; i < unit.getHiddenLayers().size(); i++){
+				for (Neuron neuron : unit.getHiddenLayers().get(i).getNeurons()){
+					int count = 5 * i;
+					for (InputConnection connection : neuron.getInputConnections()){
+						assertEquals(connection.getNeuron().getID(), count);
+						count++;
+					}
+				}
+			}
+			
+			assertEquals(unit.getAllNeurons().values().size(), 35);
+			assertEquals(unit.getInputLayer().getNeurons().size(), 5);
+			assertEquals(unit.getOutputLayer().getNeurons().size(), 5);
+			for (NeuralLayer layer : unit.getHiddenLayers()){
+				assertEquals(layer.getNeurons().size(), 5);
+			}
+			assertEquals(unit.getHiddenLayers().size(), 5);
+	}
+	
+	@Test
+	public void connectLayersTest (){
+		
 	}
 	
 //	@Before
