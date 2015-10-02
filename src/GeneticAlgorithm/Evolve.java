@@ -14,17 +14,19 @@ public class Evolve  extends GeneticAlgorithm{
 		this.newRandomPopulation (network, populationSize, fitnessProperties);
 	}
 	@Override
-	public void evaluateGenome(Object...parameters) {
+	public void evaluateGenome(Genome genome ,Object...parameters) {
 	}
 
 	@Override
-	public void evaluateGeneration(File logFile) {
+	public void evaluateGeneration( ) {
 		double averageFitness = 0.0;
-		Genome fitest = this.getPopulation().get(0);
+		this.setFittestGenome( this.getPopulation().get(0));
 		
 		for (Genome genome : this.getPopulation()){
 			averageFitness = genome.getOverallFitness() + averageFitness;
-			if (genome.getOverallFitness() > fitest.getOverallFitness()){fitest = genome;}
+			if (genome.getOverallFitness() > this.getFittestGenome().getOverallFitness()){
+				this.setFittestGenome(genome);
+			}
 			for (String property : this.getFitnessAverages().keySet()){
 				double fitness = this.getFitnessAverages().get(property);
 				fitness = fitness + genome.getFitnessProperties().get(property);
@@ -52,7 +54,7 @@ public class Evolve  extends GeneticAlgorithm{
 		averageFitness = Round.round(sumFitness/this.getPopulation().size(),3);
 		for (Genome genome : this.getPopulation()){
 			double overallFitness;
-			if (genome.getOverallFitness() == 0){ overallFitness =0.0;}
+			if (genome.getOverallFitness() == 0 || averageFitness == 0){ overallFitness = genome.getOverallFitness();}
 			else {overallFitness = Round.round( genome.getOverallFitness()/averageFitness, 3);}
 			genome.setOverallFitness(overallFitness);
 		}

@@ -1,6 +1,9 @@
 package GeneticAlgorithm;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -35,9 +38,10 @@ public abstract class GeneticAlgorithm {
 	private double maxGeneVal = 1.0;
 	private double minGeneVal = 0.0;
 	private File logFile = null;
+	private Genome fittestGenome = null;
 	
-	public abstract void evaluateGenome (Object...parameters);
-	public abstract void evaluateGeneration (File logFile);
+	public abstract void evaluateGenome (Genome genome ,Object...parameters);
+	public abstract void evaluateGeneration ();
 	public abstract void calculateFitnesses ();
 
 	
@@ -80,10 +84,10 @@ public abstract class GeneticAlgorithm {
 	public void newGeneration (int eliteSampleSize, int boltzSampleSize,double boltzTemperature, int populationSize ){
 		Random rand = new Random ();
 		Genome child = null;
-		int childID = population.size();
 		for (String property: fitnessAverages.keySet()){fitnessAverages.put(property, 0.0);}
 		overallFitnessAverage = 0.0;
 		generation ++;
+		int childID = population.size() * generation;
 		
 		int totalParents = eliteSampleSize + boltzSampleSize;
 		int maxFromElite = (int)((double)populationSize*((double)eliteSampleSize/(double)totalParents));
@@ -268,6 +272,40 @@ public abstract class GeneticAlgorithm {
 		return child;
 	}
 	
+	public void writeLogFile (String fileName) throws IOException{
+		evaluateGeneration();
+		StringBuilder builder = new StringBuilder();
+		//PrintWriter outWriter = new PrintWriter(new FileWriter(fileName, true));
+		String output = ("*********************************************** \n"+
+							"GENERATION = " + generation + "\n" + 
+			"Fittest = " + fittestGenome.getID() + " AverageFitness = " + overallFitnessAverage + "\n" +
+							"FITTNESS AVERAGES = ");
+		builder.append(output);
+		for (String property : fitnessAverages.keySet()){
+			System.out.println("dfsdfdfsf");
+			builder.append( "<< " + property + " : " + fitnessAverages.get(property) + " >>");
+		}
+		builder.append(" \n Selected Elite Parents = ");
+		for (Genome genome : eliteParents){
+			builder.append(" <" + genome.getID() + ">");
+		}
+		
+		builder.append("\n  Selected Other Parents = ");
+		for (Genome genome : candidateParents.values()){
+			builder.append(" <" + genome.getID() + ">");
+		}
+		
+		builder.append("\n  All GENOMES ******* = ");
+		for (Genome genome : population){
+			builder.append( "\n" + genome.getID() + "fitness = " + genome.getOverallFitness() + " Fitnesses = ");
+			for (String property : genome.getFitnessProperties().keySet()){
+				builder.append( "<< " + property + " : " + genome.getFitnessProperties().get(property) + " >>");
+			}
+		}
+		
+		System.out.println(output);
+	}
+	
 	
 	//-----------------------GETTERS & SETTERS --------------
 
@@ -335,6 +373,13 @@ public abstract class GeneticAlgorithm {
 	public void setMinGeneVal(double minGeneVal) {
 		this.minGeneVal = minGeneVal;
 	}
+	public Genome getFittestGenome() {
+		return fittestGenome;
+	}
+	public void setFittestGenome(Genome fittestGenome) {
+		this.fittestGenome = fittestGenome;
+	}
+	
 	
 }
 
