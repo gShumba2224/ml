@@ -18,7 +18,7 @@ public class Evolve  extends GeneticAlgorithm{
 	}
 
 	@Override
-	public void evaluateGeneration( ) {
+	public void evaluateGeneration () {
 		double averageFitness = 0.0;
 		this.setFittestGenome( this.getPopulation().get(0));
 		

@@ -10,7 +10,7 @@ public class Genome {
 	private int ID = 0;
 	private Map<String,Double> fitnessProperties = new HashMap <String, Double> ();
 	private List <Gene> genes = new ArrayList <Gene>();
-	private double overallFitness = 1.0;
+	private double overallFitness = 0.0;
 	private double  boltzmannFitness = 0.0;
 	private Genome mother = null;
 	private Genome father = null;

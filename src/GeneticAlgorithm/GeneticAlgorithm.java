@@ -1,5 +1,6 @@
 package GeneticAlgorithm;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -37,7 +38,7 @@ public abstract class GeneticAlgorithm {
 	private int generation = -1;
 	private double maxGeneVal = 1.0;
 	private double minGeneVal = 0.0;
-	private File logFile = null;
+	private String logFile = null;
 	private Genome fittestGenome = null;
 	
 	public abstract void evaluateGenome (Genome genome ,Object...parameters);
@@ -271,19 +272,22 @@ public abstract class GeneticAlgorithm {
 		mutate (child);
 		return child;
 	}
-	
+	public void writeLogFile () throws IOException{
+		writeLogFile(logFile);
+	}
 	public void writeLogFile (String fileName) throws IOException{
 		evaluateGeneration();
 		StringBuilder builder = new StringBuilder();
 		//PrintWriter outWriter = new PrintWriter(new FileWriter(fileName, true));
 		String output = ("*********************************************** \n"+
+						"*********************************************** \n"+
 							"GENERATION = " + generation + "\n" + 
 			"Fittest = " + fittestGenome.getID() + " AverageFitness = " + overallFitnessAverage + "\n" +
 							"FITTNESS AVERAGES = ");
 		builder.append(output);
 		for (String property : fitnessAverages.keySet()){
-			System.out.println("dfsdfdfsf");
-			builder.append( "<< " + property + " : " + fitnessAverages.get(property) + " >>");
+			System.out.println(property);
+			builder.append( "< " + property + " : " + fitnessAverages.get(property) + " >");
 		}
 		builder.append(" \n Selected Elite Parents = ");
 		for (Genome genome : eliteParents){
@@ -294,16 +298,29 @@ public abstract class GeneticAlgorithm {
 		for (Genome genome : candidateParents.values()){
 			builder.append(" <" + genome.getID() + ">");
 		}
-		
 		builder.append("\n  All GENOMES ******* = ");
 		for (Genome genome : population){
-			builder.append( "\n" + genome.getID() + "fitness = " + genome.getOverallFitness() + " Fitnesses = ");
+			
+			String momID = "NONE";
+			String dadID = "None";
+			if (genome.getMother() != null && genome.getFather() != null){
+				momID = String.valueOf(genome.getMother());
+				dadID = String.valueOf(genome.getFather());
+			}
+			builder.append( "\n Genome ID = " + genome.getID() + " Parents = <mom :" + momID + " dad :" + dadID + ">"+
+					" fitness = " + genome.getOverallFitness() + " Fitnesses = ");
 			for (String property : genome.getFitnessProperties().keySet()){
-				builder.append( "<< " + property + " : " + genome.getFitnessProperties().get(property) + " >>");
+				builder.append( "< " + property + " : " + genome.getFitnessProperties().get(property) + " >");
 			}
 		}
 		
-		System.out.println(output);
+		//true = append file
+		FileWriter fileWritter = new FileWriter(fileName,true);
+	        BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+	        bufferWritter.write(builder.toString());
+	        bufferWritter.close();
+		//outWriter.write(builder.toString());
+		System.out.println(builder.toString());
 	}
 	
 	
@@ -379,6 +396,13 @@ public abstract class GeneticAlgorithm {
 	public void setFittestGenome(Genome fittestGenome) {
 		this.fittestGenome = fittestGenome;
 	}
+	public String getLogFile() {
+		return logFile;
+	}
+	public void setLogFile(String logFile) {
+		this.logFile = logFile;
+	}
+	
 	
 	
 }
