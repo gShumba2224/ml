@@ -1,12 +1,18 @@
 package GeneticAlgorithm;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
-public class Genome {
+public class Genome implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1321226803013352370L;
 	private int ID = 0;
 	private Map<String,Double> fitnessProperties = new HashMap <String, Double> ();
 	private List <Gene> genes = new ArrayList <Gene>();
@@ -25,10 +31,11 @@ public class Genome {
 			this.fitnessProperties.put(property, 0.0);
 		}
 	}
+
+	
 	public double getOverallFitness() {
 		return overallFitness;
 	}
-	
 	public void setOverallFitness(double fitness) {
 		 overallFitness = fitness;
 	}
@@ -36,7 +43,7 @@ public class Genome {
 		return fitnessProperties;
 	}
 	public void setFitnessProperties(Map<String, Double> fitnessProperties) {
-		this.fitnessProperties = fitnessProperties;
+	//	this.fitnessProperties = fitnessProperties;
 	}
 	public List<Gene> getGenes() {
 		return genes;
@@ -70,3 +77,4 @@ public class Genome {
 		this.father = father;
 	}
 }
+

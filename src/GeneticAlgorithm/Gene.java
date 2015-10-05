@@ -1,8 +1,14 @@
 package GeneticAlgorithm;
 
-public class Gene {
+import java.io.Serializable;
+
+public class Gene implements Serializable{
 	
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2252841865976965039L;
 	public final static int BIAS = 0;
 	public final static int WEIGHT = 1;
 	

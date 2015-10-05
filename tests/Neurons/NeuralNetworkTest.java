@@ -12,25 +12,15 @@ import GeneticAlgorithm.Genome;
 
 public class NeuralNetworkTest {
 	
-	public NeuralNetwork unit = unit = new NeuralNetwork(3, 3, 3, 3);
+	public NeuralNetwork unit  = new NeuralNetwork(20, 15, 10, 5);
 
 	@Test
 	public void getOutputsTest (){
 	
-		NeuralLayer layer = new NeuralLayer(1);
-		Neuron neuron1 = new SigmoidNeuron(0);
-		Neuron neuron2 = new SigmoidNeuron(1);
+		 unit  = new NeuralNetwork(20, 15, 10, 5);
+		 System.out.println(unit.getOutputLayer().getNeurons().size());
 		
-		neuron1.setOutputValue(1.0);
-		neuron2.setOutputValue(2.0);
 		
-		layer.getNeurons().add(neuron1);
-		layer.getNeurons().add(neuron2);
-		
-		unit.setOutputLayer(layer);
-		
-		assertEquals(unit.getOutputs().get(0), 1.0,0.001);
-		assertEquals(unit.getOutputs().get(1), 2.0,0.001);
 	}
 	
 	@Test

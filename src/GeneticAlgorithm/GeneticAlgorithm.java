@@ -141,7 +141,7 @@ public abstract class GeneticAlgorithm {
 	
 	public void boltzmannSelection (double temperature, int numberOfSelections){
 		double sumFitness = 0.0;
-		calculateFitnesses();
+		//calculateFitnesses();
 		Map <String, Genome> selectionPool = new HashMap <String, Genome> ();
 		
 		for (Genome genome : population){
@@ -266,7 +266,7 @@ public abstract class GeneticAlgorithm {
 		}else{
 			child = singlePointCrossOver (father,mother,childID,crossPoint);
 		}
-		for (String property : fitnessAverages.keySet()){child.getFitnessProperties().put(property, 0.0);}
+		for (String property : fitnessAverages.keySet()) {child.getFitnessProperties().put(property, 0.0);}
 		child.setMother(mother);
 		child.setFather(father);
 		mutate (child);
@@ -286,7 +286,6 @@ public abstract class GeneticAlgorithm {
 							"FITTNESS AVERAGES = ");
 		builder.append(output);
 		for (String property : fitnessAverages.keySet()){
-			System.out.println(property);
 			builder.append( "< " + property + " : " + fitnessAverages.get(property) + " >");
 		}
 		builder.append(" \n Selected Elite Parents = ");
@@ -304,8 +303,8 @@ public abstract class GeneticAlgorithm {
 			String momID = "NONE";
 			String dadID = "None";
 			if (genome.getMother() != null && genome.getFather() != null){
-				momID = String.valueOf(genome.getMother());
-				dadID = String.valueOf(genome.getFather());
+				momID = String.valueOf(genome.getMother().getID());
+				dadID = String.valueOf(genome.getFather().getID());
 			}
 			builder.append( "\n Genome ID = " + genome.getID() + " Parents = <mom :" + momID + " dad :" + dadID + ">"+
 					" fitness = " + genome.getOverallFitness() + " Fitnesses = ");
@@ -314,13 +313,13 @@ public abstract class GeneticAlgorithm {
 			}
 		}
 		
-		//true = append file
-		FileWriter fileWritter = new FileWriter(fileName,true);
-	        BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-	        bufferWritter.write(builder.toString());
-	        bufferWritter.close();
-		//outWriter.write(builder.toString());
-		System.out.println(builder.toString());
+//		//true = append file
+//		FileWriter fileWritter = new FileWriter(fileName,true);
+//	        BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+//	        bufferWritter.write(builder.toString());
+//	        bufferWritter.close();
+//		//outWriter.write(builder.toString());
+		System.out.println(this.generation);
 	}
 	
 	
@@ -417,4 +416,3 @@ class StringDoublePair {
 		this.number = number;
 	}
 }
-

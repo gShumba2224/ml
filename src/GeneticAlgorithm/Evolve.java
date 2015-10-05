@@ -19,26 +19,26 @@ public class Evolve  extends GeneticAlgorithm{
 
 	@Override
 	public void evaluateGeneration () {
-		double averageFitness = 0.0;
-		this.setFittestGenome( this.getPopulation().get(0));
-		
-		for (Genome genome : this.getPopulation()){
-			averageFitness = genome.getOverallFitness() + averageFitness;
-			if (genome.getOverallFitness() > this.getFittestGenome().getOverallFitness()){
-				this.setFittestGenome(genome);
-			}
-			for (String property : this.getFitnessAverages().keySet()){
-				double fitness = this.getFitnessAverages().get(property);
-				fitness = fitness + genome.getFitnessProperties().get(property);
-				this.getFitnessAverages().put(property, fitness);
-			}
-		}
-		for (String property : this.getFitnessAverages().keySet()){
-			double average = this.getFitnessAverages().get(property);
-			average = average/this.getPopulation().size();
-			this.getFitnessAverages().put(property, average);
-		}
-		this.setOverallFitnessAverage(averageFitness/this.getPopulation().size());
+//		double averageFitness = 0.0;
+//		this.setFittestGenome( this.getPopulation().get(0));
+//		
+//		for (Genome genome : this.getPopulation()){
+//			averageFitness = genome.getOverallFitness() + averageFitness;
+//			if (genome.getOverallFitness() > this.getFittestGenome().getOverallFitness()){
+//				this.setFittestGenome(genome);
+//			}
+//			for (String property : this.getFitnessAverages().keySet()){
+//				double fitness = this.getFitnessAverages().get(property);
+//				fitness = fitness + genome.getFitnessProperties().get(property);
+//				this.getFitnessAverages().put(property, fitness);
+//			}
+//		}
+//		for (String property : this.getFitnessAverages().keySet()){
+//			double average = this.getFitnessAverages().get(property);
+//			average = average/this.getPopulation().size();
+//			this.getFitnessAverages().put(property, average);
+//		}
+//		this.setOverallFitnessAverage(averageFitness/this.getPopulation().size());
 	}
 
 	@Override
@@ -56,6 +56,7 @@ public class Evolve  extends GeneticAlgorithm{
 			double overallFitness;
 			if (genome.getOverallFitness() == 0 || averageFitness == 0){ overallFitness = genome.getOverallFitness();}
 			else {overallFitness = Round.round( genome.getOverallFitness()/averageFitness, 3);}
+			System.out.println("overal Fit = " + overallFitness);
 			genome.setOverallFitness(overallFitness);
 		}
 	}

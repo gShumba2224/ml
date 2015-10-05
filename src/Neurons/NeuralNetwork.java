@@ -55,7 +55,7 @@ public class NeuralNetwork{
 				hiddenLayers.add(layer);
 			}
 			outputLayer = new NeuralLayer (numberOfhidden);
-			for (int i = 0 ;  i < inputLayerSize ; i++){
+			for (int i = 0 ;  i < outputLayerSize ; i++){
 				SigmoidNeuron neuron = new SigmoidNeuron(count);
 				outputLayer.getNeurons().add(neuron);
 				mapNeuronToID(neuron);
@@ -85,7 +85,7 @@ public class NeuralNetwork{
 	
 	public void update () throws DuplicateNeuronID_Exception {
 		updateAllNeuronsMap ();
-		if (inputReader != null){inputReader.readInputs(this);}
+		//if (inputReader != null){inputReader.readInputs(this);}
 		for (Neuron neuron : allNeurons.values()){
 			neuron.update();
 		}
