@@ -10,6 +10,15 @@ public class Evolve  extends GeneticAlgorithm{
 	public Evolve (){
 	}
 	
+	public Evolve (NeuralNetwork network, int populationSize, double minBias, double maxBias, 
+			double minWeight,double maxWeight,String...fitnessProperties){
+		this.setMaxBias(maxBias);
+		this.setMinBias(minBias);
+		this.setMaxGeneVal(maxWeight);
+		this.setMinGeneVal(minWeight);
+		this.newRandomPopulation (network, populationSize, fitnessProperties);
+	}
+	
 	public Evolve (NeuralNetwork network, int populationSize, String...fitnessProperties){
 		this.newRandomPopulation (network, populationSize, fitnessProperties);
 	}
@@ -43,21 +52,26 @@ public class Evolve  extends GeneticAlgorithm{
 
 	@Override
 	public void calculateFitnesses() {
-		double sumFitness = 0.0;
-		double averageFitness = 0.0;
 		for (Genome genome : this.getPopulation()){
 			double fitness = 0.0;
-			for (double score : genome.getFitnessProperties().values()){fitness = fitness + score;}
-			sumFitness = sumFitness + fitness;
+			for (double score : genome.getFitnessProperties().values()){
+				fitness = fitness + score;
+			}
 			genome.setOverallFitness(fitness);
 		}
-		averageFitness = Round.round(sumFitness/this.getPopulation().size(),3);
-		for (Genome genome : this.getPopulation()){
-			double overallFitness;
-			if (genome.getOverallFitness() == 0 || averageFitness == 0){ overallFitness = genome.getOverallFitness();}
-			else {overallFitness = Round.round( genome.getOverallFitness()/averageFitness, 3);}
-			System.out.println("overal Fit = " + overallFitness);
-			genome.setOverallFitness(overallFitness);
+		double sum = this.sumFitness();
+		double average = 0.0;
+		if (sum != 0){
+			average = this.averageFitness();
+			for (Genome genome : this.getPopulation() ){
+				if (genome.getOverallFitness() != 0){
+					double fitness = genome.getOverallFitness()/average;
+					fitness = Round.round(fitness, 5);
+					genome.setOverallFitness(fitness);
+				}
+			}
 		}
+		
+		
 	}
 }

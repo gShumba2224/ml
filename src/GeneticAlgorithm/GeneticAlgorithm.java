@@ -29,15 +29,16 @@ public abstract class GeneticAlgorithm {
 	
 	private static final double WHEEL = 360.0;
 	private List <Genome> population = new ArrayList <Genome> ();
-	private Map <String,Genome> candidateParents = new HashMap <String,Genome> ();
+	private List <Genome> candidateParents = new ArrayList <Genome> ();
 	private List <Genome> eliteParents = new ArrayList <Genome> ();
 	private Map <String,Double> fitnessAverages = new HashMap <String,Double>();
 	private double overallFitnessAverage = 0.0;
-	private double mutationRate = 0.05;
-	private double mutationScale = 1.0;
 	private int generation = -1;
 	private double maxGeneVal = 1.0;
 	private double minGeneVal = 0.0;
+	private double mutationRate = 0.15;
+	private double maxBias = 1.0;
+	private double minBias = 0.0;
 	private String logFile = null;
 	private Genome fittestGenome = null;
 	
@@ -70,14 +71,14 @@ public abstract class GeneticAlgorithm {
 		Gene gene = null;
 		for (InputConnection connection : neuron.getInputConnections()){
 			weight = rand.nextDouble();
-			weight = (weight *(maxGeneVal - minGeneVal))+ minGeneVal;
+			weight = Round.remapValues(weight, 0, 1, minGeneVal, maxGeneVal);
 			gene = new  Gene(count, neuron.getID(), count, weight, Gene.WEIGHT);
 			genome.getGenes().add(gene);
 			count++;
 		}
 		count++;
 		weight = rand.nextDouble();
-		weight = (weight *(maxGeneVal - minGeneVal))+ minGeneVal;
+		weight = Round.remapValues(weight, 0, 1, minBias, maxBias);
 		gene = new  Gene(count, neuron.getID(), count, weight, Gene.BIAS);
 		genome.getGenes().add(gene);
 	}
@@ -98,7 +99,7 @@ public abstract class GeneticAlgorithm {
 		boltzmannSelection(boltzTemperature, boltzSampleSize);
 		population.clear();
 		
-		for (int i = 0; i < maxFromElite ; i++){
+		for (int i = 0; i < eliteSampleSize ; i++){
 			Genome father = eliteParents.get(rand.nextInt(eliteParents.size()));
 			Genome mother = eliteParents.get(rand.nextInt(eliteParents.size()));
 			int crossPoint = rand.nextInt(father.getGenes().size());
@@ -107,12 +108,9 @@ public abstract class GeneticAlgorithm {
 			childID++;
 		}
 		
-		List <Genome> candidateList = new ArrayList <Genome>(candidateParents.values());
 		for (int i = 0; i < maxFromOther ; i++){
-			Genome father =candidateList.get(rand.nextInt(candidateList.size()));
-			Genome mother = candidateList.get(rand.nextInt(candidateList.size()));
-			while  (father.equals(mother) == true){
-				mother = candidateList.get(rand.nextInt(candidateList.size()));}
+			Genome father =candidateParents.get(rand.nextInt(candidateParents.size()));
+			Genome mother = candidateParents.get(rand.nextInt(candidateParents.size()));
 			int crossPoint = rand.nextInt(father.getGenes().size());
 			child = mate(mother, father, childID, crossPoint);
 			population.add(child);
@@ -139,68 +137,83 @@ public abstract class GeneticAlgorithm {
 		}
 	}
 	
+	public double sumFitness (){
+		double sum = 0.0;
+		for (Genome genome : population){sum = genome.getOverallFitness() + sum;}
+		return sum;
+	}
+	
+	public double averageFitness (){
+		return sumFitness ()/population.size();
+	}
+	
+	private double  boltzmannFitness (double fitness , double temperature){
+		if (fitness == 0){return 0.0;}
+		double exponent = fitness/temperature;
+		return  Round.round( (Math.pow(Math.E, exponent)), 3 );
+	}
+	
 	public void boltzmannSelection (double temperature, int numberOfSelections){
-		double sumFitness = 0.0;
-		//calculateFitnesses();
-		Map <String, Genome> selectionPool = new HashMap <String, Genome> ();
+		calculateFitnesses();
+		List <RouletteEntity> selectionPool = new ArrayList<RouletteEntity>();
 		
+		double sumFitness = 0.0;
+		int notZeros = 0;
 		for (Genome genome : population){
-			genome.setBoltzmannFitness( boltzmannFitness(genome.getOverallFitness(), temperature, population.size()));
-			sumFitness = sumFitness + genome.getBoltzmannFitness();
-		}
-		double lastPoint = 0.0;
-		for (Genome genome : population){
-			double fitness = genome.getBoltzmannFitness();
-			if (fitness > 0 && sumFitness > 0){
-				double startRange = lastPoint;
-				double finishRange = startRange  + ((fitness/sumFitness) * WHEEL);
-				String key = String.valueOf(Round.round(startRange,3))+"-"
-							+String.valueOf(Round.round(finishRange,3));
-				selectionPool.put(key, genome);
-				lastPoint = finishRange;
+			if ( genome.getOverallFitness() != 0){
+				double boltzFitness = boltzmannFitness(genome.getOverallFitness(), temperature);
+				genome.setBoltzmannFitness(boltzFitness);
+				sumFitness = sumFitness + boltzFitness;
+				notZeros++;
 			}
 		}
-		stochasticUniversallSampling (selectionPool,numberOfSelections);
+		
+		double startPoint = 0.0;
+		double endPoint = 0.0;
+		if (sumFitness != 0.0 && notZeros >= 2){
+			for (Genome genome : population){
+				if (genome.getOverallFitness() > 0){
+					endPoint = startPoint + ((genome.getBoltzmannFitness()/sumFitness)*WHEEL);}
+					RouletteEntity rouletteEntity = new RouletteEntity(genome, startPoint, endPoint);
+					selectionPool.add(rouletteEntity);
+					startPoint = endPoint;
+				}
+		}else{
+			for (Genome genome : population){
+				endPoint = startPoint + (WHEEL/population.size());
+				RouletteEntity rouletteEntity = new RouletteEntity(genome, startPoint, endPoint);
+				selectionPool.add(rouletteEntity);
+				startPoint = endPoint;
+			}
+		}
+	stochasticUniversallSampling (selectionPool,numberOfSelections);
 	}
 	
-	private double  boltzmannFitness (double fitness , double temperature, double currentAverage){
-		return  Round.round((Math.pow(Math.E,  (fitness/temperature)))/currentAverage, 3 );
+	private Genome findFromRoulette (double point,List <RouletteEntity> selectionPool ){
+
+		Genome foundGenome = null;
+		for (int i = 0; selectionPool.size() > i ; i++){
+			RouletteEntity entity = selectionPool.get(i);
+			if (point >= entity.startPoint && point < entity.endPoint){
+				foundGenome = entity.genome;
+			}
+		}
+		return foundGenome;
 	}
-	
-	private  void stochasticUniversallSampling (Map <String,Genome> selectionPool,int numberOfSelections){
+	private  void stochasticUniversallSampling (List <RouletteEntity> selectionPool,int numberOfSelections){
+		
 		double stepSize =  WHEEL / numberOfSelections;
 		double nextPoint = new Random ().nextDouble() * WHEEL;
-		
-		double sumBoltzmann = 0.0;
 		int selected = 0;
 		while (selected < numberOfSelections ){
 			if (nextPoint > WHEEL){nextPoint = nextPoint - WHEEL;}
-			String selectedGenome =  checkRange (selectionPool,nextPoint);
-			if (selectedGenome != null){
-				candidateParents.put(selectedGenome, selectionPool.get(selectedGenome));
-				sumBoltzmann = sumBoltzmann + selectionPool.get(selectedGenome).getBoltzmannFitness();
-				selected ++;
-			} else return;
+			Genome selectedGenome = findFromRoulette (nextPoint, selectionPool);
+			candidateParents.add(selectedGenome);
 			nextPoint = nextPoint + stepSize;
+			selected ++;
 		}
 	}
 
-	private String checkRange (Map <String,Genome> selectionPool , double point){
-		NumberFormat formatter = NumberFormat.getInstance();
-		for (String key : selectionPool.keySet()){
-			String[] splitKey = key.split("-");
-			double start;
-			double finish;
-			try {
-				start = formatter.parse( splitKey[0] ).doubleValue();
-				 finish = Double.parseDouble( splitKey[1] );
-				 if (point >= start && point < finish){
-					 return key;
-				}
-			} catch (ParseException e) {}
-		}
-		return null;
-	}
 	
 	public Genome singlePointCrossOver (Genome father, Genome mother,int childID, int crossPoint,String...fitnesses){
 		Genome child = new Genome (childID,fitnesses);
@@ -240,19 +253,18 @@ public abstract class GeneticAlgorithm {
 	
 	public void mutate (Genome child ){
 		Random rand = new Random ();
-		double max = mutationScale;
-		double min = -1* max;
 		double willMutate = 0.0;
-		double mutateAmount = 0.0;
+		double newWeight = 0.0;
 		
 		for (Gene gene : child.getGenes()){
 			willMutate = rand.nextDouble();
 			if (willMutate <= mutationRate){
-				mutateAmount = ( rand.nextDouble());
-				mutateAmount = min + mutateAmount * (max - min);
-				double newWeight = gene.getWeight() + mutateAmount;
-				if (newWeight < minGeneVal){newWeight = minGeneVal;}
-				if (newWeight > maxGeneVal){newWeight = maxGeneVal;}
+				newWeight = ( rand.nextDouble());
+				if (gene.getType() == Gene.WEIGHT){
+					newWeight = Round.remapValues(newWeight, 0, 1, minGeneVal, maxGeneVal);
+				}else{
+					newWeight = Round.remapValues(newWeight, 0, 1, minBias, maxBias);
+				}
 				gene.setWeight(newWeight);
 			}
 		}
@@ -294,7 +306,7 @@ public abstract class GeneticAlgorithm {
 		}
 		
 		builder.append("\n  Selected Other Parents = ");
-		for (Genome genome : candidateParents.values()){
+		for (Genome genome : candidateParents){
 			builder.append(" <" + genome.getID() + ">");
 		}
 		builder.append("\n  All GENOMES ******* = ");
@@ -332,10 +344,10 @@ public abstract class GeneticAlgorithm {
 		this.population = population;
 	}
 
-	public Map<String, Genome> getCandidateParents() {
+	public List<Genome> getCandidateParents() {
 		return candidateParents;
 	}
-	public void setCandidateParents(Map<String, Genome> candidateParents) {
+	public void setCandidateParents(List< Genome> candidateParents) {
 		this.candidateParents = candidateParents;
 	}
 	public List<Genome> getEliteParents() {
@@ -362,12 +374,7 @@ public abstract class GeneticAlgorithm {
 	public void setMutationRate(double mutationRate) {
 		this.mutationRate = mutationRate;
 	}
-	public double getMutationScale() {
-		return mutationScale;
-	}
-	public void setMutationScale(double mutationScale) {
-		this.mutationScale = mutationScale;
-	}
+
 	public int getGeneration() {
 		return generation;
 	}
@@ -401,18 +408,41 @@ public abstract class GeneticAlgorithm {
 	public void setLogFile(String logFile) {
 		this.logFile = logFile;
 	}
-	
+	public double getMaxBias() {
+		return maxBias;
+	}
+	public void setMaxBias(double maxBias) {
+		this.maxBias = maxBias;
+	}
+	public double getMinBias() {
+		return minBias;
+	}
+	public void setMinBias(double minBias) {
+		this.minBias = minBias;
+	}
 	
 	
 }
 
-
-class StringDoublePair {
-	public String string;
-	public double number;
+class RouletteEntity{
 	
-	public StringDoublePair(String string, double number) {
-		this.string = string;
-		this.number = number;
+	public Genome genome;
+	public double startPoint;
+	public double endPoint;
+	
+	public RouletteEntity (Genome genome, double startPoint, double endPoint){
+		this.genome = genome;
+		this.startPoint = startPoint;
+		this.endPoint = endPoint;
 	}
 }
+
+//class StringDoublePair {
+//	public String string;
+//	public double number;
+//	
+//	public StringDoublePair(String string, double number) {
+//		this.string = string;
+//		this.number = number;
+//	}
+//}

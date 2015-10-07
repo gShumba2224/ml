@@ -13,7 +13,11 @@ public class SigmoidNeuron extends Neuron {
 	
 	@Override
 	public double thresholdFunction() {
+		
 		double exponent = (this.getSumValue() - this.getBias())  * -1;
+		
+		double out = 1.0/ (1.0 + Math.pow(Math.E, exponent));
+		//System.out.println("out =" + out + " sum " + this.getSumValue() + " bias" + this.getBias() + " ID = " + this.getID());
 		return  1.0/ (1.0 + Math.pow(Math.E, exponent));
 	}
 

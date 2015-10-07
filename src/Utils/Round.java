@@ -11,4 +11,9 @@ public final class Round {
 	    decimal = decimal.setScale(places, RoundingMode.HALF_UP);
 	    return decimal.doubleValue();
 	}
+	
+	public static double remapValues (double value, double oldMin, double oldMax, double newMin, double newMax){
+		double result = (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin;
+		return result;
+	}
 }
