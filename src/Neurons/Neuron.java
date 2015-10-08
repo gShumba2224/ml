@@ -13,7 +13,6 @@ public abstract class Neuron implements Serializable {
 	private List <Connection> outputConnections =  new ArrayList <Connection>();
 	private double sumValue = 0.0;
 	private double outputValue = 0.0;
-	private double bias = 0.0;
 	
 	public void addInputConnection (Neuron neuron, double weight){
 		inputConnections.add( new InputConnection (neuron,weight));}
@@ -57,8 +56,8 @@ public abstract class Neuron implements Serializable {
 	
 	public List<Connection> getOutputConnections() {return outputConnections;}
 	
-	public double getBias() {return bias;}
-	
-	public void setBias(double bias) {this.bias = bias;}
+//	public double getBias() {return bias;}
+//	
+//	public void setBias(double bias) {this.bias = bias;}
 	
 }

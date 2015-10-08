@@ -76,11 +76,13 @@ public abstract class GeneticAlgorithm {
 			genome.getGenes().add(gene);
 			count++;
 		}
-		count++;
-		weight = rand.nextDouble();
-		weight = Round.remapValues(weight, 0, 1, minBias, maxBias);
-		gene = new  Gene(count, neuron.getID(), count, weight, Gene.BIAS);
-		genome.getGenes().add(gene);
+//		if (doUniformBias == false){
+//			count++;
+//			weight = rand.nextDouble();
+//			weight = Round.remapValues(weight, 0, 1, minBias, maxBias);
+//			gene = new  Gene(count, neuron.getID(), count, weight, Gene.BIAS);
+//			genome.getGenes().add(gene);
+//		}
 	}
 	
 	public void newGeneration (int eliteSampleSize, int boltzSampleSize,double boltzTemperature, int populationSize ){
@@ -262,9 +264,10 @@ public abstract class GeneticAlgorithm {
 				newWeight = ( rand.nextDouble());
 				if (gene.getType() == Gene.WEIGHT){
 					newWeight = Round.remapValues(newWeight, 0, 1, minGeneVal, maxGeneVal);
-				}else{
-					newWeight = Round.remapValues(newWeight, 0, 1, minBias, maxBias);
 				}
+//				else{
+//					newWeight = Round.remapValues(newWeight, 0, 1, minBias, maxBias);
+//				}
 				gene.setWeight(newWeight);
 			}
 		}
@@ -420,6 +423,7 @@ public abstract class GeneticAlgorithm {
 	public void setMinBias(double minBias) {
 		this.minBias = minBias;
 	}
+
 	
 	
 }

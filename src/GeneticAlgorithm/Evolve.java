@@ -10,14 +10,13 @@ public class Evolve  extends GeneticAlgorithm{
 	public Evolve (){
 	}
 	
-	public Evolve (NeuralNetwork network, int populationSize, double minBias, double maxBias, 
+	public Evolve (NeuralNetwork network, int populationSize, 
 			double minWeight,double maxWeight,String...fitnessProperties){
-		this.setMaxBias(maxBias);
-		this.setMinBias(minBias);
 		this.setMaxGeneVal(maxWeight);
 		this.setMinGeneVal(minWeight);
 		this.newRandomPopulation (network, populationSize, fitnessProperties);
 	}
+
 	
 	public Evolve (NeuralNetwork network, int populationSize, String...fitnessProperties){
 		this.newRandomPopulation (network, populationSize, fitnessProperties);

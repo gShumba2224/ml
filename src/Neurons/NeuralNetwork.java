@@ -43,6 +43,9 @@ public class NeuralNetwork{
 				mapNeuronToID(neuron);
 				count++;
 			}
+
+			
+			
 			hiddenLayers = new ArrayList<NeuralLayer> ();
 			for (int i = 0 ;  i < numberOfhidden ; i++){
 				NeuralLayer layer = new NeuralLayer (1+i);
@@ -61,6 +64,8 @@ public class NeuralNetwork{
 				mapNeuronToID(neuron);
 				count ++;
 			}
+			
+			setBiasNeurons(count);
 			connectAllLayers (null);
 			updateAllNeuronsMap();
 		}catch (DuplicateNeuronID_Exception e){ e.printStackTrace();}
@@ -109,11 +114,7 @@ public class NeuralNetwork{
 		updateAllNeuronsMap();
 		for (Gene gene: genome.getGenes()){
 			Neuron neuron = allNeurons.get(gene.getNeuronID());
-			if (gene.getType() == Gene.WEIGHT){
-				neuron.getInputConnections().get(gene.getInputNumber()).setWeight(gene.getWeight());
-			}else{
-				neuron.setBias(gene.getWeight());
-			}
+			neuron.getInputConnections().get(gene.getInputNumber()).setWeight(gene.getWeight());
 		}
 	}
 	
@@ -133,6 +134,19 @@ public class NeuralNetwork{
 		}else{
 			allNeurons.put(neuron.getID(), neuron);
 		}
+	}
+	
+	private void setBiasNeurons (int startIndex) throws DuplicateNeuronID_Exception{
+		InputNeuron biasNeuron;
+		for (NeuralLayer layer : hiddenLayers){
+			biasNeuron = new InputNeuron(startIndex);
+			layer.setBiasNeuron(biasNeuron);
+			mapNeuronToID(biasNeuron);
+			startIndex++;
+		}
+		biasNeuron = new InputNeuron(startIndex);
+		outputLayer.setBiasNeuron(biasNeuron);
+		mapNeuronToID(biasNeuron);
 	}
 	public NeuralLayer getInputLayer() {return inputLayer;}
 	
