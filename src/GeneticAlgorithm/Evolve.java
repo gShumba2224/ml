@@ -27,50 +27,31 @@ public class Evolve  extends GeneticAlgorithm{
 
 	@Override
 	public void evaluateGeneration () {
-//		double averageFitness = 0.0;
-//		this.setFittestGenome( this.getPopulation().get(0));
-//		
-//		for (Genome genome : this.getPopulation()){
-//			averageFitness = genome.getOverallFitness() + averageFitness;
-//			if (genome.getOverallFitness() > this.getFittestGenome().getOverallFitness()){
-//				this.setFittestGenome(genome);
-//			}
-//			for (String property : this.getFitnessAverages().keySet()){
-//				double fitness = this.getFitnessAverages().get(property);
-//				fitness = fitness + genome.getFitnessProperties().get(property);
-//				this.getFitnessAverages().put(property, fitness);
-//			}
-//		}
-//		for (String property : this.getFitnessAverages().keySet()){
-//			double average = this.getFitnessAverages().get(property);
-//			average = average/this.getPopulation().size();
-//			this.getFitnessAverages().put(property, average);
-//		}
-//		this.setOverallFitnessAverage(averageFitness/this.getPopulation().size());
-	}
-
-	@Override
-	public void calculateFitnesses() {
+		this.setSumFitness(0.0);
+		this.setOverallFitnessAverage(0.0);
+		this.setFittestGenome( this.getPopulation().get(0));
+		
+		for (String property : this.getFitnessAverages().keySet()){
+			this.getFitnessAverages().replace(property, 0.0);
+		}
 		for (Genome genome : this.getPopulation()){
 			double fitness = 0.0;
-			for (double score : genome.getFitnessProperties().values()){
+			for (String property : genome.getFitnessProperties().keySet()){
+				double score = genome.getFitnessProperties().get(property);
+				double propertyAvg = this.getFitnessAverages().get(property)+score;
+				this.getFitnessAverages().replace(property, propertyAvg);
 				fitness = fitness + score;
 			}
 			genome.setOverallFitness(fitness);
+			if (genome.getOverallFitness() > this.getFittestGenome().getOverallFitness()){
+				this.setFittestGenome(genome);}
+			this.setSumFitness(fitness + this.getSumFitness());
 		}
-		double sum = this.sumFitness();
-		double average = 0.0;
-		if (sum != 0){
-			average = this.averageFitness();
-			for (Genome genome : this.getPopulation() ){
-				if (genome.getOverallFitness() != 0){
-					double fitness = genome.getOverallFitness()/average;
-					fitness = Round.round(fitness, 5);
-					genome.setOverallFitness(fitness);
-				}
-			}
+		for (String property : this.getFitnessAverages().keySet()){
+			double average = this.getFitnessAverages().get(property);
+			if (average > 0){average = average/this.getPopulation().size();}
+			this.getFitnessAverages().put(property, average);
 		}
-		
-		
+		this.setOverallFitnessAverage(this.getSumFitness()/this.getPopulation().size());
 	}
 }

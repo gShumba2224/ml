@@ -41,10 +41,11 @@ public abstract class GeneticAlgorithm {
 	private double minBias = 0.0;
 	private String logFile = null;
 	private Genome fittestGenome = null;
+	private double sumFitness = 0.0;
+	private double crossPoint = 0.5;
 	
 	public abstract void evaluateGenome (Genome genome ,Object...parameters);
 	public abstract void evaluateGeneration ();
-	public abstract void calculateFitnesses ();
 
 	
 	public void newRandomPopulation (NeuralNetwork network, int populationSize, String...fitnessProperties){
@@ -76,16 +77,14 @@ public abstract class GeneticAlgorithm {
 			genome.getGenes().add(gene);
 			count++;
 		}
-//		if (doUniformBias == false){
-//			count++;
-//			weight = rand.nextDouble();
-//			weight = Round.remapValues(weight, 0, 1, minBias, maxBias);
-//			gene = new  Gene(count, neuron.getID(), count, weight, Gene.BIAS);
-//			genome.getGenes().add(gene);
-//		}
 	}
 	
 	public void newGeneration (int eliteSampleSize, int boltzSampleSize,double boltzTemperature, int populationSize ){
+		evaluateGeneration();
+		generationLog();
+		
+		eliteParents.clear();
+		candidateParents.clear();
 		Random rand = new Random ();
 		Genome child = null;
 		for (String property: fitnessAverages.keySet()){fitnessAverages.put(property, 0.0);}
@@ -93,18 +92,18 @@ public abstract class GeneticAlgorithm {
 		generation ++;
 		int childID = population.size() * generation;
 		
-		int totalParents = eliteSampleSize + boltzSampleSize;
+		int totalParents = (eliteSampleSize * fitnessAverages.size())+ boltzSampleSize;
 		int maxFromElite = (int)((double)populationSize*((double)eliteSampleSize/(double)totalParents));
 		int maxFromOther = populationSize - maxFromElite;
 		
 		for (String property : fitnessAverages.keySet()){elitismSelection(property, eliteSampleSize);}
 		boltzmannSelection(boltzTemperature, boltzSampleSize);
 		population.clear();
-		
-		for (int i = 0; i < eliteSampleSize ; i++){
+
+		for (int i = 0; i < maxFromElite ; i++){
 			Genome father = eliteParents.get(rand.nextInt(eliteParents.size()));
 			Genome mother = eliteParents.get(rand.nextInt(eliteParents.size()));
-			int crossPoint = rand.nextInt(father.getGenes().size());
+			int crossPoint = (int)(this.crossPoint * father.getGenes().size());//rand.nextInt(father.getGenes().size());
 			child = mate(mother, father, childID, crossPoint);
 			population.add(child);
 			childID++;
@@ -113,13 +112,11 @@ public abstract class GeneticAlgorithm {
 		for (int i = 0; i < maxFromOther ; i++){
 			Genome father =candidateParents.get(rand.nextInt(candidateParents.size()));
 			Genome mother = candidateParents.get(rand.nextInt(candidateParents.size()));
-			int crossPoint = rand.nextInt(father.getGenes().size());
+			int crossPoint = (int)(this.crossPoint * father.getGenes().size());//rand.nextInt(father.getGenes().size());
 			child = mate(mother, father, childID, crossPoint);
 			population.add(child);
 			childID++;
 		}
-		eliteParents.clear();
-		candidateParents.clear();
 	}
 	
 	public void elitismSelection (String property, int sampleSize){
@@ -129,24 +126,14 @@ public abstract class GeneticAlgorithm {
 		while (sampleSize > 0){
 			Genome highest = tempList.get(0);
 			for (Genome genome : tempList){
-				Double candidate = genome.getFitnessProperties().get(property);
-				Double current = highest.getFitnessProperties().get(property);
-				if (Double.compare(candidate, current) > 0){highest = genome;}
+				double candidate = genome.getFitnessProperties().get(property);
+				double current = highest.getFitnessProperties().get(property);
+				if (current < candidate){highest = genome;}
 			}
 			eliteParents.add(highest);
 			tempList.remove(highest);
 			sampleSize--;
 		}
-	}
-	
-	public double sumFitness (){
-		double sum = 0.0;
-		for (Genome genome : population){sum = genome.getOverallFitness() + sum;}
-		return sum;
-	}
-	
-	public double averageFitness (){
-		return sumFitness ()/population.size();
 	}
 	
 	private double  boltzmannFitness (double fitness , double temperature){
@@ -156,7 +143,6 @@ public abstract class GeneticAlgorithm {
 	}
 	
 	public void boltzmannSelection (double temperature, int numberOfSelections){
-		calculateFitnesses();
 		List <RouletteEntity> selectionPool = new ArrayList<RouletteEntity>();
 		
 		double sumFitness = 0.0;
@@ -265,9 +251,6 @@ public abstract class GeneticAlgorithm {
 				if (gene.getType() == Gene.WEIGHT){
 					newWeight = Round.remapValues(newWeight, 0, 1, minGeneVal, maxGeneVal);
 				}
-//				else{
-//					newWeight = Round.remapValues(newWeight, 0, 1, minBias, maxBias);
-//				}
 				gene.setWeight(newWeight);
 			}
 		}
@@ -276,7 +259,7 @@ public abstract class GeneticAlgorithm {
 	public Genome mate (Genome father, Genome mother,int childID, int crossPoint){
 		Genome child;
 		int method = new Random().nextInt(10);
-		if (method <= 4){
+		if (method <= 3){
 			child = uniformCrossOver (father,mother,childID);
 		}else{
 			child = singlePointCrossOver (father,mother,childID,crossPoint);
@@ -287,54 +270,56 @@ public abstract class GeneticAlgorithm {
 		mutate (child);
 		return child;
 	}
-	public void writeLogFile () throws IOException{
-		writeLogFile(logFile);
+	public void writeLogFile (String fileName, String log) throws IOException{
+		PrintWriter outWriter = new PrintWriter(new FileWriter(fileName, true));
+		FileWriter fileWritter = new FileWriter(fileName,true);
+        BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+        bufferWritter.write(log);
+        bufferWritter.close();
+        outWriter.write(log);
 	}
-	public void writeLogFile (String fileName) throws IOException{
-		evaluateGeneration();
+	public String generationLog (){
 		StringBuilder builder = new StringBuilder();
-		//PrintWriter outWriter = new PrintWriter(new FileWriter(fileName, true));
+		
 		String output = ("*********************************************** \n"+
 						"*********************************************** \n"+
 							"GENERATION = " + generation + "\n" + 
-			"Fittest = " + fittestGenome.getID() + " AverageFitness = " + overallFitnessAverage + "\n" +
-							"FITTNESS AVERAGES = ");
+		"Fittest = "+fittestGenome.getID() +" AverageFitness = " + overallFitnessAverage + " Sum Fitnesses ="+ sumFitness+ 
+		"\n" +"FITTNESS AVERAGES = ");
 		builder.append(output);
 		for (String property : fitnessAverages.keySet()){
 			builder.append( "< " + property + " : " + fitnessAverages.get(property) + " >");
 		}
 		builder.append(" \n Selected Elite Parents = ");
 		for (Genome genome : eliteParents){
-			builder.append(" <" + genome.getID() + ">");
-		}
-		
-		builder.append("\n  Selected Other Parents = ");
-		for (Genome genome : candidateParents){
-			builder.append(" <" + genome.getID() + ">");
-		}
-		builder.append("\n  All GENOMES ******* = ");
-		for (Genome genome : population){
+			builder.append(" \n < ID = " + genome.getID() + ">"+ "< OverallFitness = "+genome.getOverallFitness()+">"+ "< Fitnesses = ");
 			
-			String momID = "NONE";
-			String dadID = "None";
-			if (genome.getMother() != null && genome.getFather() != null){
-				momID = String.valueOf(genome.getMother().getID());
-				dadID = String.valueOf(genome.getFather().getID());
-			}
-			builder.append( "\n Genome ID = " + genome.getID() + " Parents = <mom :" + momID + " dad :" + dadID + ">"+
-					" fitness = " + genome.getOverallFitness() + " Fitnesses = ");
 			for (String property : genome.getFitnessProperties().keySet()){
 				builder.append( "< " + property + " : " + genome.getFitnessProperties().get(property) + " >");
 			}
 		}
 		
-//		//true = append file
-//		FileWriter fileWritter = new FileWriter(fileName,true);
-//	        BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-//	        bufferWritter.write(builder.toString());
-//	        bufferWritter.close();
-//		//outWriter.write(builder.toString());
-		System.out.println(this.generation);
+		builder.append("\n  Selected Other Parents = ");
+		for (Genome genome : candidateParents){
+			builder.append("\n <" + genome.getID() + ">"+ "<"+genome.getOverallFitness()+">");
+		}
+//		builder.append("\n  All GENOMES ******* = ");
+//		for (Genome genome : population){
+//			
+//			String momID = "NONE";
+//			String dadID = "None";
+//			if (genome.getMother() != null && genome.getFather() != null){
+//				momID = String.valueOf(genome.getMother().getID());
+//				dadID = String.valueOf(genome.getFather().getID());
+//			}
+//			builder.append( "\n Genome ID = " + genome.getID() + " Parents = <mom :" + momID + " dad :" + dadID + ">"+
+//					" Overallfitness = " + genome.getOverallFitness() + " Fitnesses = ");
+//			for (String property : genome.getFitnessProperties().keySet()){
+//				builder.append( "< " + property + " : " + genome.getFitnessProperties().get(property) + " >");
+//			}
+//		}
+		System.out.println(builder.toString());
+		return (builder.toString());
 	}
 	
 	
@@ -423,8 +408,12 @@ public abstract class GeneticAlgorithm {
 	public void setMinBias(double minBias) {
 		this.minBias = minBias;
 	}
-
-	
+	public double getSumFitness() {
+		return sumFitness;
+	}
+	public void setSumFitness(double sumFitness) {
+		this.sumFitness = sumFitness;
+	}
 	
 }
 
@@ -441,12 +430,4 @@ class RouletteEntity{
 	}
 }
 
-//class StringDoublePair {
-//	public String string;
-//	public double number;
-//	
-//	public StringDoublePair(String string, double number) {
-//		this.string = string;
-//		this.number = number;
-//	}
-//}
+

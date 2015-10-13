@@ -16,6 +16,7 @@ public class NeuralNetwork{
 	private List <NeuralLayer> hiddenLayers = new ArrayList <NeuralLayer> ();
 	private Map<Integer,Neuron> allNeurons = new HashMap <Integer,Neuron> ();
 	private NeuralNetworkReader inputReader = null;
+	public String name = null;
 	
 	public NeuralNetwork (){
 	}
@@ -66,7 +67,8 @@ public class NeuralNetwork{
 			}
 			
 			setBiasNeurons(count);
-			connectAllLayers (null);
+			if (hiddenLayers.size() == 0){connectLayers(inputLayer, outputLayer);}
+			else{connectAllLayers (null);}
 			updateAllNeuronsMap();
 		}catch (DuplicateNeuronID_Exception e){ e.printStackTrace();}
 	}
@@ -90,7 +92,6 @@ public class NeuralNetwork{
 	
 	public void update () throws DuplicateNeuronID_Exception {
 		updateAllNeuronsMap ();
-		//if (inputReader != null){inputReader.readInputs(this);}
 		for (Neuron neuron : allNeurons.values()){
 			neuron.update();
 		}
