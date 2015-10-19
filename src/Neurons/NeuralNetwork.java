@@ -44,7 +44,6 @@ public class NeuralNetwork{
 				mapNeuronToID(neuron);
 				count++;
 			}
-
 			
 			
 			hiddenLayers = new ArrayList<NeuralLayer> ();
