@@ -91,9 +91,11 @@ public class NeuralNetwork{
 	
 	public void update () throws DuplicateNeuronID_Exception {
 		updateAllNeuronsMap ();
-		for (Neuron neuron : allNeurons.values()){
-			neuron.update();
+		for (Neuron neuron : inputLayer.getNeurons()){neuron.update();}
+		for (NeuralLayer layer : hiddenLayers){
+			for (Neuron neuron : layer.getNeurons()){neuron.update();}
 		}
+		for (Neuron neuron : outputLayer.getNeurons()){neuron.update();}
 	}
 	
 	private void updateAllNeuronsMap () throws DuplicateNeuronID_Exception{
@@ -147,6 +149,11 @@ public class NeuralNetwork{
 		biasNeuron = new InputNeuron(startIndex);
 		outputLayer.setBiasNeuron(biasNeuron);
 		mapNeuronToID(biasNeuron);
+	}
+	
+	public void setBiaInputs (double value){
+		for (NeuralLayer layer : hiddenLayers){layer.getBiasNeuron().setOutputValue(value);}
+		outputLayer.getBiasNeuron().setOutputValue(value);
 	}
 	public NeuralLayer getInputLayer() {return inputLayer;}
 	

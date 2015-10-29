@@ -96,22 +96,33 @@ public abstract class GeneticAlgorithm {
 		boltzmannSelection(boltzTemperature, boltzSampleSize);
 		population.clear();
 		
-		
 		ArrayList <Genome> parents = new ArrayList<Genome>();
 		for (Genome genome : eliteParents){parents.add(genome);}
 		for (Genome genome : candidateParents){parents.add(genome);}
 		
-		for (int i = 0; i < populationSize ; i++){
+		while (population.size() < populationSize){
 			Genome father =parents.get(rand.nextInt(parents.size()));
-			Genome mother = parents.get(rand.nextInt(parents.size()));
-			int crossPoint = (int)(father.getGenes().size()*crossPointValue); //rand.nextInt(father.getGenes().size());
-			child = mate(mother, father, childID, crossPoint);
+//			Genome mother = parents.get(rand.nextInt(parents.size()));
+//			if ( rand.nextDouble() >= 0.1 && (population.size()+2) < populationSize){
+//				int crossPoint = rand.nextInt(father.getGenes().size());
+//				mate(mother, father, childID, crossPoint);
+//				mate(father, mother, childID+1, crossPoint);
+//				childID = childID+2;
+//			}else{
+//				mate(mother, father, childID, null);
+//				childID++;
+//			}
+			child = replicateGenome(father, childID, false);
 			population.add(child);
 			childID++;
 		}
 		for (String property: fitnessAverages.keySet()){fitnessAverages.put(property, 0.0);}
 		overallFitnessAverage = 0.0;
 		postEvolutionActions();
+		System.out.println("pop size ="+ population.size());
+		if (population.size() == 41 || population.size() == 201){
+			System.out.println("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn");
+		}
 	}
 	
 	public void elitismSelection (String property, int sampleSize){
@@ -257,15 +268,13 @@ public abstract class GeneticAlgorithm {
 			willMutate = rand.nextDouble();
 			if (willMutate <= mutationRate){
 				newWeight = ( rand.nextDouble());
-				if (gene.getType() == Gene.WEIGHT){
-					newWeight = Round.remapValues(newWeight, 0, 1, minGeneVal, maxGeneVal);
-				}
+				newWeight = Round.remapValues(newWeight, 0, 1, minGeneVal, maxGeneVal);
 				gene.setWeight(newWeight);
 			}
 		}
 	}
 	
-	public Genome replicateGenome (Genome genome, int childID){
+	public Genome replicateGenome (Genome genome, int childID, boolean doMutate){
 		Genome replica = new Genome (childID);
 		Gene newGene = null;
 		for (Gene gene : genome.getGenes() ){
@@ -275,15 +284,15 @@ public abstract class GeneticAlgorithm {
 		for (String propery : genome.getFitnessProperties().keySet() ){
 			replica.getFitnessProperties().put(propery, 0.0);
 		}
+		if (doMutate == true){mutate (replica);}
 		replica.setFather(genome);
 		replica.setMother(genome);
 		return replica;
 	}
 	
-	public Genome mate (Genome father, Genome mother,int childID, int crossPoint){
+	public void mate (Genome father, Genome mother,int childID,Integer crossPoint){
 		Genome child;
-		int method = new Random().nextInt(10);
-		if (method <= 3){
+		if (crossPoint == null){
 			child = uniformCrossOver (father,mother,childID);
 		}else{
 			child = singlePointCrossOver (father,mother,childID,crossPoint);
@@ -292,7 +301,7 @@ public abstract class GeneticAlgorithm {
 		child.setMother(mother);
 		child.setFather(father);
 		mutate (child);
-		return child;
+		population.add(child);
 	}
 	
 	//-----------------------GETTERS & SETTERS --------------
