@@ -102,27 +102,21 @@ public abstract class GeneticAlgorithm {
 		
 		while (population.size() < populationSize){
 			Genome father =parents.get(rand.nextInt(parents.size()));
-//			Genome mother = parents.get(rand.nextInt(parents.size()));
-//			if ( rand.nextDouble() >= 0.1 && (population.size()+2) < populationSize){
-//				int crossPoint = rand.nextInt(father.getGenes().size());
-//				mate(mother, father, childID, crossPoint);
-//				mate(father, mother, childID+1, crossPoint);
-//				childID = childID+2;
-//			}else{
-//				mate(mother, father, childID, null);
-//				childID++;
-//			}
-			child = replicateGenome(father, childID, false);
-			population.add(child);
-			childID++;
+			Genome mother = parents.get(rand.nextInt(parents.size()));
+			if ( rand.nextDouble() >= 0.1 && (population.size()+2) < populationSize){
+				int crossPoint = (father.getGenes().size()/2);//rand.nextInt(father.getGenes().size());
+				mate(mother, father, childID, crossPoint);
+				mate(father, mother, childID+1, crossPoint);
+				childID = childID+2;
+			}else{
+				mate(mother, father, childID, null);
+				childID++;
+			}
 		}
 		for (String property: fitnessAverages.keySet()){fitnessAverages.put(property, 0.0);}
 		overallFitnessAverage = 0.0;
 		postEvolutionActions();
-		System.out.println("pop size ="+ population.size());
-		if (population.size() == 41 || population.size() == 201){
-			System.out.println("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn");
-		}
+		if (population.size() == 41 || population.size() == 201){System.out.println("nnnnnnnnnn");}
 	}
 	
 	public void elitismSelection (String property, int sampleSize){
@@ -140,18 +134,6 @@ public abstract class GeneticAlgorithm {
 			tempList.remove(highest);
 			sampleSize--;
 		}
-	}
-	
-	private double modifyFitnessScore (Genome genome,String property){
-		double value =genome.getOverallFitness()-genome.getFitnessProperties().get(property);
-		if (value != 0){
-			if (overallFitnessAverage != 0){
-				value = (value/overallFitnessAverage)*genome.getFitnessProperties().get(property);
-			}else{
-				value = value *genome.getFitnessProperties().get(property);
-			}
-		}
-		return value;
 	}
 	
 	private double  boltzmannFitness (double fitness , double temperature){
@@ -288,6 +270,21 @@ public abstract class GeneticAlgorithm {
 		replica.setFather(genome);
 		replica.setMother(genome);
 		return replica;
+	}
+	
+	public Genome blend (Genome father, Genome mother, int childID, double ratio){
+		Genome child = new Genome (childID);
+		Gene gene;
+		for (int i = 0; i < father.getGenes().size(); i++){
+			Gene dadGene = father.getGenes().get(i);
+			Gene momGene = mother.getGenes().get(i);
+			double weight = (ratio*dadGene.getWeight())+ ((1.0-ratio)*momGene.getWeight());
+			gene = new Gene(i, dadGene.getNeuronID(), dadGene.getInputNumber(),weight, dadGene.getType());
+			child.getGenes().add(gene);
+		}
+		mutate(child);
+		for (String property : fitnessAverages.keySet()) {child.getFitnessProperties().put(property, 0.0);}
+		return child;
 	}
 	
 	public void mate (Genome father, Genome mother,int childID,Integer crossPoint){
