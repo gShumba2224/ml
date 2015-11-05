@@ -43,7 +43,7 @@ public class Genome implements Serializable {
 		return fitnessProperties;
 	}
 	public void setFitnessProperties(Map<String, Double> fitnessProperties) {
-	//	this.fitnessProperties = fitnessProperties;
+		this.fitnessProperties = fitnessProperties;
 	}
 	public List<Gene> getGenes() {
 		return genes;
